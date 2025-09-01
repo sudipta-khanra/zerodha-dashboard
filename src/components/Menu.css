@@ -1,0 +1,114 @@
+.profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #eee;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 60px; /* adjust as needed */
+  right: 0;
+  width: 300px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 8px 10px;
+  z-index: 100;
+}
+
+.profile-dropdown .profile-header {
+  padding: 8px 12px;
+}
+
+.profile-dropdown .profile-name {
+  font-weight: bold;
+}
+
+.profile-dropdown .profile-email {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.profile-dropdown p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-dropdown p:hover {
+  background-color: #f0f0f0;
+}
+
+hr {
+  margin: 8px 0;
+  border: 0.5px solid #eee;
+}
+
+/* Login form inside dropdown */
+.profile-dropdown .login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f5f5f5; /* light gray background */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+}
+
+.profile-dropdown .login-form h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  text-align: center;
+  color: #333;
+}
+
+.profile-dropdown .login-form input {
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.profile-dropdown .login-form input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.profile-dropdown .login-form button {
+  padding: 8px 10px;
+  font-size: 14px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.profile-dropdown .login-form button:hover {
+  background-color: #0056b3;
+}
+.coming-soon {
+  font-size: 0.8rem;
+  color: gray;
+  margin-left: 8px;
+}

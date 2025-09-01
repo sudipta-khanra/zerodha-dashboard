@@ -1,0 +1,199 @@
+/* SellActionWindow.css */
+.container {
+  --radius: 4px;
+  width: 40%;
+  height: 63%;
+  background: rgb(245, 245, 245);
+  position: absolute;
+  bottom: 0;
+  left: 35%;
+  cursor: move;
+  box-sizing: border-box;
+  z-index: 100;
+  border-radius: var(--radius);
+  border: 1px solid rgb(238, 238, 238);
+}
+
+.dragging {
+  opacity: 0;
+}
+
+.container .header {
+  width: 100%;
+  background: #e53935; /* red for sell */
+  box-sizing: border-box;
+  padding: 16px;
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.header h3 {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.header h3 span {
+  font-size: 0.6rem;
+}
+
+.regular-order {
+  padding: 16px 26px;
+  background-color: #fff;
+  padding-bottom: 30px;
+}
+
+.inputs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.inputs fieldset {
+  max-width: 120px;
+  box-sizing: border-box;
+  border: 0.7px solid #ddd;
+  margin-right: 8px;
+}
+
+.inputs fieldset legend {
+  margin-left: 10px;
+  font-size: 0.8rem;
+}
+
+.inputs fieldset input {
+  border: none;
+  margin-right: 8px;
+  max-width: 130px;
+  min-height: 35px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  font-size: 1.1rem;
+}
+
+.buttons {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  top: 10%;
+  padding: 0 20px;
+}
+
+.buttons span {
+  font-size: 0.8rem;
+}
+
+.btn {
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 2px;
+  color: #fff;
+  margin-right: 2px;
+  margin-left: 2px;
+}
+
+.btn-grey {
+  background: #d4d4d4;
+  color: #666666;
+}
+
+.btn-red {
+  background: #e53935; /* red for sell */
+}
+
+/* Hover effects */
+.btn-red:hover {
+  background: #f0625d;
+}
+
+.btn-grey:hover {
+  background: #9b9b9b;
+  color: #fff;
+}
+
+.inputs fieldset:focus {
+  outline: none;
+  border: 0.7px solid rgb(49, 49, 49);
+  border-radius: 2px;
+}
+
+.inputs fieldset input:focus {
+  outline: none;
+}
+
+.inputs fieldset input:disabled {
+  cursor: not-allowed;
+  background-color: transparent;
+}
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal Box */
+.modal {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.25);
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Text */
+.modal p {
+  color: #e53935; /* stylish red */
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  text-transform: uppercase; /* modern style */
+}
+
+/* Close Button */
+.modal button {
+  background: #e53935; /* red button */
+  color: #fff;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-family: 'Poppins', sans-serif;
+}
+
+.modal button:hover {
+  background: #d32f2f; /* darker red on hover */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
