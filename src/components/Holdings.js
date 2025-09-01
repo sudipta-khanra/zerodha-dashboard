@@ -4,66 +4,46 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { VerticalGraph } from "./VerticalGraph";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [error, setError] = useState("");
 
+  // ---------- REUSABLE FETCH FUNCTION ----------
+  const fetchData = async (endpoint, token, setState) => {
+    try {
+      const res = await axios.get(`${API_URL}/${endpoint}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Safely extract array
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data[endpoint])) {
+        data = res.data[endpoint];
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      setState(data);
+      setError("");
+    } catch (err) {
+      setError(err.response?.data?.error || "Please log in to see data");
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      setError("No token found. Please log in.");
+      return;
+    }
 
-    const fetchHoldings = async () => {
-      try {
-        const res = await axios.get("http://localhost:3002/allHoldings", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // console.log("Holdings API response:", res.data);
-
-        // Safely extract holdings array
-        let holdingsData = [];
-        if (Array.isArray(res.data)) {
-          holdingsData = res.data;
-        } else if (Array.isArray(res.data.allHoldings)) {
-          holdingsData = res.data.allHoldings;
-        } else if (Array.isArray(res.data.data)) {
-          holdingsData = res.data.data;
-        }
-
-        setAllHoldings(holdingsData);
-        setError("");
-      } catch (err) {
-        setError(err.response?.data?.error || "Please log in to see data");
-      }
-    };
-
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get("http://localhost:3002/allOrders", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // console.log("Orders API response:", res.data);
-
-        // Safely extract orders array
-        let ordersData = [];
-        if (Array.isArray(res.data)) {
-          ordersData = res.data;
-        } else if (Array.isArray(res.data.allOrders)) {
-          ordersData = res.data.allOrders;
-        } else if (Array.isArray(res.data.data)) {
-          ordersData = res.data.data;
-        }
-
-        setAllOrders(ordersData);
-        setError("");
-      } catch (err) {
-        setError(err.response?.data?.error || "Please log in to see data");
-      }
-    };
-
-    fetchHoldings();
-    fetchOrders();
+    fetchData("allHoldings", token, setAllHoldings);
+    fetchData("allOrders", token, setAllOrders);
   }, []);
 
   if (error) {

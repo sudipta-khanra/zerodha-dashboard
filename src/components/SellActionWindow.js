@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import GeneralContext from "./GeneralContext";
 import axios from "axios";
 import "./SellActionWindow.css";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SellActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
@@ -12,45 +13,85 @@ const SellActionWindow = ({ uid }) => {
   const { closeSellWindow } = useContext(GeneralContext);
   const token = localStorage.getItem("token"); // JWT token
 
+  // const handleSellClick = async () => {
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:3002/sellOrder",
+  //       {
+  //         name: uid,
+  //         qty: Number(stockQuantity),
+  //         price: Number(stockPrice),
+  //         mode: "SELL",
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     // Show message in modal (success or error)
+  //     setModalMessage(response.data.message || "Order processed");
+  //     setShowModal(true);
+
+  //     setTimeout(() => {
+  //       setShowModal(false);
+  //       setModalMessage("");
+  //       if (response.data.success) closeSellWindow(); // Close window only on success
+  //     }, 2500);
+  //   } catch (error) {
+  //     setModalMessage(
+  //       error.response?.data?.message || "An unexpected error occurred"
+  //     );
+  //     setShowModal(true);
+
+  //     setTimeout(() => {
+  //       setShowModal(false);
+  //       setModalMessage("");
+  //       closeSellWindow();
+  //     }, 2500);
+  //   }
+  // };
+
   const handleSellClick = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3002/sellOrder",
-        {
-          name: uid,
-          qty: Number(stockQuantity),
-          price: Number(stockPrice),
-          mode: "SELL",
+  try {
+    const response = await axios.post(
+      `${API_URL}/sellOrder`,   // ✅ use env variable
+      {
+        name: uid,
+        qty: Number(stockQuantity),
+        price: Number(stockPrice),
+        mode: "SELL",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      }
+    );
 
-      // Show message in modal (success or error)
-      setModalMessage(response.data.message || "Order processed");
-      setShowModal(true);
+    // Show message in modal (success or error)
+    setModalMessage(response.data.message || "Order processed");
+    setShowModal(true);
 
-      setTimeout(() => {
-        setShowModal(false);
-        setModalMessage("");
-        if (response.data.success) closeSellWindow(); // Close window only on success
-      }, 2500);
-    } catch (error) {
-      setModalMessage(
-        error.response?.data?.message || "An unexpected error occurred"
-      );
-      setShowModal(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setModalMessage("");
+      if (response.data.success) closeSellWindow(); // Close window only on success
+    }, 2500);
+  } catch (error) {
+    setModalMessage(
+      error.response?.data?.message || "An unexpected error occurred"
+    );
+    setShowModal(true);
 
-      setTimeout(() => {
-        setShowModal(false);
-        setModalMessage("");
-        closeSellWindow();
-      }, 2500);
-    }
-  };
+    setTimeout(() => {
+      setShowModal(false);
+      setModalMessage("");
+      closeSellWindow();
+    }, 2500);
+  }
+};
 
   const handleCancelClick = () => {
     closeSellWindow();

@@ -11,6 +11,9 @@ import {
 } from "react-icons/fa";
 import { MdKeyboard } from "react-icons/md";
 import "./Menu.css";
+const API_URL = process.env.REACT_APP_API_URL;
+
+
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -32,48 +35,98 @@ const Menu = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   // Fetch user data if token exists
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) return;
+  //     try {
+  //       const res = await fetch("http://localhost:3002/api/auth/me", {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       if (!res.ok) return;
+  //       const data = await res.json();
+  //       setUser(data);
+  //     } catch (err) {
+  //       console.error("Error fetching user:", err);
+  //     }
+  //   };
+  //   fetchUser();
+  // }, []);
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const res = await fetch("http://localhost:3002/api/auth/me", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error("Error fetching user:", err);
-      }
-    };
-    fetchUser();
-  }, []);
-  // Login function
-  const handleLogin = async () => {
-    if (!email || !password) return alert("Enter email and password");
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     try {
-      const res = await fetch("http://localhost:3002/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (!res.ok) return;
+
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        setUser({ username: data.username, email });
-        setEmail("");
-        setPassword("");
-      } else {
-        alert(data.message);
-      }
+      setUser(data);
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Error fetching user:", err);
     }
   };
+
+  fetchUser();
+}, []);
+
+  // Login function
+  // const handleLogin = async () => {
+  //   if (!email || !password) return alert("Enter email and password");
+  //   try {
+  //     const res = await fetch("http://localhost:3002/api/auth/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email, password }),
+  //     });
+  //     const data = await res.json();
+  //     if (res.ok) {
+  //       localStorage.setItem("token", data.token);
+  //       setUser({ username: data.username, email });
+  //       setEmail("");
+  //       setPassword("");
+  //     } else {
+  //       alert(data.message);
+  //     }
+  //   } catch (err) {
+  //     console.error("Login error:", err);
+  //   }
+  // };
+  const handleLogin = async () => {
+  if (!email || !password) return alert("Enter email and password");
+
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("token", data.token);
+      setUser({ username: data.username, email });
+      setEmail("");
+      setPassword("");
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+  }
+};
+
   // Logout function
   const handleLogout = () => {
     localStorage.removeItem("token");

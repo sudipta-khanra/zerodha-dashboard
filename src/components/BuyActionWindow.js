@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import "./BuyActionWindow.css";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const BuyActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
@@ -15,45 +16,82 @@ const BuyActionWindow = ({ uid }) => {
   // JWT token from localStorage
   const token = localStorage.getItem("token");
 
-  const handleBuyClick = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3002/newOrder",
-        {
-          name: uid,
-          qty: Number(stockQuantity),
-          price: Number(stockPrice),
-          mode: "BUY",
+  // const handleBuyClick = async () => {
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:3002/newOrder",
+  //       {
+  //         name: uid,
+  //         qty: Number(stockQuantity),
+  //         price: Number(stockPrice),
+  //         mode: "BUY",
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     // Show success message in modal
+  //     setModalMessage(response.data.message || "Order placed successfully!");
+  //     setShowModal(true);
+
+  //     setTimeout(() => {
+  //       setShowModal(false);
+  //       setModalMessage("");
+  //       closeBuyWindow(); // close window after success
+  //     }, 2500);
+  //   } catch (error) {
+  //     setModalMessage(
+  //       error.response?.data?.message || "Failed to place order"
+  //     );
+  //     setShowModal(true);
+
+  //     setTimeout(() => {
+  //       setShowModal(false);
+  //       setModalMessage("");
+  //       closeBuyWindow(); // close window on error too
+  //     }, 2500);
+  //   }
+  // };
+const handleBuyClick = async () => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/newOrder`, // ✅ use environment variable
+      {
+        name: uid,
+        qty: Number(stockQuantity),
+        price: Number(stockPrice),
+        mode: "BUY",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      }
+    );
 
-      // Show success message in modal
-      setModalMessage(response.data.message || "Order placed successfully!");
-      setShowModal(true);
+    // Show success message in modal
+    setModalMessage(response.data.message || "Order placed successfully!");
+    setShowModal(true);
 
-      setTimeout(() => {
-        setShowModal(false);
-        setModalMessage("");
-        closeBuyWindow(); // close window after success
-      }, 2500);
-    } catch (error) {
-      setModalMessage(
-        error.response?.data?.message || "Failed to place order"
-      );
-      setShowModal(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setModalMessage("");
+      closeBuyWindow(); // close window after success
+    }, 2500);
+  } catch (error) {
+    setModalMessage(error.response?.data?.message || "Failed to place order");
+    setShowModal(true);
 
-      setTimeout(() => {
-        setShowModal(false);
-        setModalMessage("");
-        closeBuyWindow(); // close window on error too
-      }, 2500);
-    }
-  };
+    setTimeout(() => {
+      setShowModal(false);
+      setModalMessage("");
+      closeBuyWindow(); // close window on error too
+    }, 2500);
+  }
+};
 
   const handleCancelClick = () => {
     closeBuyWindow();

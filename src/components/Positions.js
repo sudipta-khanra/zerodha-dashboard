@@ -1,26 +1,44 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Positions = () => {
   const [allPositions, setAllPositions] = useState([]);
   const [error, setError] = useState("");
 
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:3002/allPositions", {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem("token")}`, // include token if needed
+  //       },
+  //     })
+  //     .then((res) => {
+  //       setAllPositions(res.data);
+  //       setError("");
+  //     })
+  //     .catch((err) => {
+  //       console.error(err);
+  //       setError("Failed to fetch positions. Please try again.");
+  //     });
+  // }, []);
   useEffect(() => {
-    axios
-      .get("http://localhost:3002/allPositions", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // include token if needed
-        },
-      })
-      .then((res) => {
-        setAllPositions(res.data);
-        setError("");
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to fetch positions. Please try again.");
-      });
-  }, []);
+  axios
+    .get(`${API_URL}/allPositions`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅ token
+      },
+    })
+    .then((res) => {
+      setAllPositions(res.data);
+      setError("");
+    })
+    .catch((err) => {
+      console.error(err);
+      setError("Failed to fetch positions. Please try again.");
+    });
+}, []);
+
 
   // Calculate totals like Holdings
   const totalInvestment = allPositions.reduce(

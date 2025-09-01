@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Orders = () => {
   const [allOrders, setAllOrders] = useState([]);
   const [allHoldings, setAllHoldings] = useState([]);
@@ -10,6 +12,19 @@ const Orders = () => {
 
   const token = localStorage.getItem("token");
 
+  // ✅ Generic fetch helper
+  const getData = async (endpoint, token) => {
+    const res = await axios.get(`${API_URL}/${endpoint}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (Array.isArray(res.data)) return res.data;
+    if (Array.isArray(res.data[endpoint])) return res.data[endpoint];
+    if (Array.isArray(res.data.data)) return res.data.data;
+    return [];
+  };
+
+  // ✅ Fetch Orders + Holdings
   const fetchData = async () => {
     if (!token) {
       if (!showModal) {
@@ -20,16 +35,14 @@ const Orders = () => {
       return;
     }
 
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-
     try {
-      const [ordersRes, holdingsRes] = await Promise.all([
-        axios.get("http://localhost:3002/allOrders", config),
-        axios.get("http://localhost:3002/allHoldings", config),
+      const [orders, holdings] = await Promise.all([
+        getData("allOrders", token),
+        getData("allHoldings", token),
       ]);
 
-      setAllOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
-      setAllHoldings(Array.isArray(holdingsRes.data) ? holdingsRes.data : []);
+      setAllOrders(orders);
+      setAllHoldings(holdings);
     } catch (err) {
       console.error("Error fetching data:", err.response?.data || err.message);
       setModalMessage("Failed to fetch orders. Please try again.");
@@ -92,7 +105,6 @@ const Orders = () => {
                 const avg = Number(order.price) || 0;
                 const qty = Number(order.qty) || 0;
 
-                // ✅ Defensive check for allHoldings
                 const holding =
                   Array.isArray(allHoldings) &&
                   allHoldings.find((h) => h?.name === order?.name);
