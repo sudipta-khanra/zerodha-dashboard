@@ -146,7 +146,7 @@ const Menu = () => {
                 </div>
                 <hr />
                 <p>
-                  <FaUser /> My profile / Settings{" "}
+                  <FaUser /> My profile{" "}
                   <span className="coming-soon">Coming Soon</span>
                 </p>
                 <p>

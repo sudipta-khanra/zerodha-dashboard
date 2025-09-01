@@ -6,36 +6,42 @@ import "./SellActionWindow.css";
 const SellActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(0.0);
-  const [modalMessage, setModalMessage] = useState(""); // For modal
-  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState(""); // Modal text
+  const [showModal, setShowModal] = useState(false); // Modal visibility
 
   const { closeSellWindow } = useContext(GeneralContext);
+  const token = localStorage.getItem("token"); // JWT token
 
   const handleSellClick = async () => {
     try {
-      const response = await axios.post("http://localhost:3002/sellOrder", {
-        name: uid,
-        qty: stockQuantity,
-        price: stockPrice,
-        mode: "SELL",
-      });
+      const response = await axios.post(
+        "http://localhost:3002/sellOrder",
+        {
+          name: uid,
+          qty: Number(stockQuantity),
+          price: Number(stockPrice),
+          mode: "SELL",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (response.data.success) {
-        // Sell order successful
-        closeSellWindow();
-      } else {
-        // Show modal with error message and auto-close
-        setModalMessage(response.data.message);
-        setShowModal(true);
+      // Show message in modal (success or error)
+      setModalMessage(response.data.message || "Order processed");
+      setShowModal(true);
 
-        setTimeout(() => {
-          setShowModal(false);
-          setModalMessage("");
-          closeSellWindow();
-        }, 2500);
-      }
+      setTimeout(() => {
+        setShowModal(false);
+        setModalMessage("");
+        if (response.data.success) closeSellWindow(); // Close window only on success
+      }, 2500);
     } catch (error) {
-      setModalMessage("An unexpected error occurred");
+      setModalMessage(
+        error.response?.data?.message || "An unexpected error occurred"
+      );
       setShowModal(true);
 
       setTimeout(() => {
@@ -43,8 +49,6 @@ const SellActionWindow = ({ uid }) => {
         setModalMessage("");
         closeSellWindow();
       }, 2500);
-
-      console.error(error);
     }
   };
 
@@ -55,7 +59,6 @@ const SellActionWindow = ({ uid }) => {
   const closeModal = () => {
     setShowModal(false);
     setModalMessage("");
-    closeSellWindow(); // Close the window if user clicks manually
   };
 
   return (
@@ -67,7 +70,7 @@ const SellActionWindow = ({ uid }) => {
             <input
               type="number"
               value={stockQuantity}
-              onChange={(e) => setStockQuantity(e.target.value)}
+              onChange={(e) => setStockQuantity(Number(e.target.value))}
             />
           </fieldset>
           <fieldset>
@@ -76,7 +79,7 @@ const SellActionWindow = ({ uid }) => {
               type="number"
               value={stockPrice}
               step="0.05"
-              onChange={(e) => setStockPrice(e.target.value)}
+              onChange={(e) => setStockPrice(Number(e.target.value))}
             />
           </fieldset>
         </div>

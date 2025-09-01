@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
@@ -7,20 +7,61 @@ import "./BuyActionWindow.css";
 const BuyActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(0.0);
+  const [modalMessage, setModalMessage] = useState(""); // modal text
+  const [showModal, setShowModal] = useState(false); // modal visibility
 
-  const handleBuyClick = () => {
-    axios.post("http://localhost:3002/newOrder", {
-      name: uid,
-      qty: stockQuantity,
-      price: stockPrice,
-      mode: "BUY",
-    });
+  const { closeBuyWindow } = useContext(GeneralContext);
 
-    GeneralContext.closeBuyWindow();
+  // JWT token from localStorage
+  const token = localStorage.getItem("token");
+
+  const handleBuyClick = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3002/newOrder",
+        {
+          name: uid,
+          qty: Number(stockQuantity),
+          price: Number(stockPrice),
+          mode: "BUY",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Show success message in modal
+      setModalMessage(response.data.message || "Order placed successfully!");
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+        setModalMessage("");
+        closeBuyWindow(); // close window after success
+      }, 2500);
+    } catch (error) {
+      setModalMessage(
+        error.response?.data?.message || "Failed to place order"
+      );
+      setShowModal(true);
+
+      setTimeout(() => {
+        setShowModal(false);
+        setModalMessage("");
+        closeBuyWindow(); // close window on error too
+      }, 2500);
+    }
   };
 
   const handleCancelClick = () => {
-    GeneralContext.closeBuyWindow();
+    closeBuyWindow();
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage("");
   };
 
   return (
@@ -33,7 +74,7 @@ const BuyActionWindow = ({ uid }) => {
               type="number"
               name="qty"
               id="qty"
-              onChange={(e) => setStockQuantity(e.target.value)}
+              onChange={(e) => setStockQuantity(Number(e.target.value))}
               value={stockQuantity}
             />
           </fieldset>
@@ -44,7 +85,7 @@ const BuyActionWindow = ({ uid }) => {
               name="price"
               id="price"
               step="0.05"
-              onChange={(e) => setStockPrice(e.target.value)}
+              onChange={(e) => setStockPrice(Number(e.target.value))}
               value={stockPrice}
             />
           </fieldset>
@@ -54,14 +95,27 @@ const BuyActionWindow = ({ uid }) => {
       <div className="buttons">
         <span>Margin required ₹140.65</span>
         <div>
-          <Link className="btn btn-blue" onClick={handleBuyClick}>
+          <button className="btn btn-blue" onClick={handleBuyClick}>
             Buy
-          </Link>
-          <Link to="" className="btn btn-grey" onClick={handleCancelClick}>
+          </button>
+          <button className="btn btn-grey" onClick={handleCancelClick}>
             Cancel
-          </Link>
+          </button>
         </div>
       </div>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <p style={{ color: "green", fontWeight: "bold", fontSize: "1.1rem" }}>
+              {modalMessage}
+            </p>
+            <button className="btn btn-grey" onClick={closeModal}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,24 +5,54 @@ const Orders = () => {
   const [allOrders, setAllOrders] = useState([]);
   const [allHoldings, setAllHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalMessage, setModalMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  const token = localStorage.getItem("token");
 
   const fetchData = async () => {
+    if (!token) {
+      if (!showModal) {
+        setModalMessage("You must be logged in to view your orders.");
+        setShowModal(true);
+      }
+      setLoading(false);
+      return;
+    }
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
     try {
-      const res = await axios.get("http://localhost:3002/allData");
-      setAllOrders(res.data.orders || []);
-      setAllHoldings(res.data.holdings || []);
+      const [ordersRes, holdingsRes] = await Promise.all([
+        axios.get("http://localhost:3002/allOrders", config),
+        axios.get("http://localhost:3002/allHoldings", config),
+      ]);
+
+      setAllOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      setAllHoldings(Array.isArray(holdingsRes.data) ? holdingsRes.data : []);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error fetching data:", err.response?.data || err.message);
+      setModalMessage("Failed to fetch orders. Please try again.");
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     fetchData();
-    const interval = setInterval(fetchData, 5000); // auto-refresh
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage("");
+  };
 
   if (loading) {
     return (
@@ -34,7 +64,9 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 px-8 py-10">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Orders & Holdings</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Orders & Holdings
+      </h1>
 
       {allOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center bg-white rounded-2xl shadow-lg p-12">
@@ -59,7 +91,12 @@ const Orders = () => {
               {allOrders.map((order, index) => {
                 const avg = Number(order.price) || 0;
                 const qty = Number(order.qty) || 0;
-                const holding = allHoldings.find((h) => h.name === order.name);
+
+                // ✅ Defensive check for allHoldings
+                const holding =
+                  Array.isArray(allHoldings) &&
+                  allHoldings.find((h) => h?.name === order?.name);
+
                 const ltp = holding ? Number(holding.price) || 0 : avg;
                 const curValue = ltp * qty;
                 const pnl = curValue - avg * qty;
@@ -72,14 +109,30 @@ const Orders = () => {
                     key={index}
                     className="hover:bg-gray-50 transition-colors border-b"
                   >
-                    <td className="py-4 px-6 font-medium text-gray-800">{order.name}</td>
+                    <td className="py-4 px-6 font-medium text-gray-800">
+                      {order.name}
+                    </td>
                     <td className="py-4 px-6 text-gray-600">{qty}</td>
-                    <td className="py-4 px-6 text-gray-600">₹{avg.toFixed(2)}</td>
+                    <td className="py-4 px-6 text-gray-600">
+                      ₹{avg.toFixed(2)}
+                    </td>
                     <td className="py-4 px-6 text-gray-600">₹{ltp.toFixed(2)}</td>
-                    <td className="py-4 px-6 text-gray-800 font-semibold">₹{curValue.toFixed(2)}</td>
-                    <td className={`py-4 px-6 ${profClass}`}>₹{pnl.toFixed(2)}</td>
-                    <td className={`py-4 px-6 ${profClass}`}>{avg > 0 ? netChange.toFixed(2) + "%" : "-"}</td>
-                    <td className={`py-4 px-6 font-semibold ${order.mode === "BUY" ? "text-green-600" : "text-red-600"}`}>
+                    <td className="py-4 px-6 text-gray-800 font-semibold">
+                      ₹{curValue.toFixed(2)}
+                    </td>
+                    <td className={`py-4 px-6 ${profClass}`}>
+                      ₹{pnl.toFixed(2)}
+                    </td>
+                    <td className={`py-4 px-6 ${profClass}`}>
+                      {avg > 0 ? netChange.toFixed(2) + "%" : "-"}
+                    </td>
+                    <td
+                      className={`py-4 px-6 font-semibold ${
+                        order.mode === "BUY"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
                       {order.mode}
                     </td>
                   </tr>
@@ -87,6 +140,19 @@ const Orders = () => {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <p style={{ color: "red", fontWeight: "bold", fontSize: "1.1rem" }}>
+              {modalMessage}
+            </p>
+            <button className="btn btn-grey" onClick={closeModal}>
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>

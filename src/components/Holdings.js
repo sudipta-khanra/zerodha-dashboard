@@ -7,28 +7,89 @@ import { VerticalGraph } from "./VerticalGraph";
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
+  const [error, setError] = useState("");
 
-  // fetch holdings
   useEffect(() => {
-    axios.get("http://localhost:3002/allHoldings").then((res) => {
-      setAllHoldings(res.data);
-    });
+    const token = localStorage.getItem("token");
+
+    const fetchHoldings = async () => {
+      try {
+        const res = await axios.get("http://localhost:3002/allHoldings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // console.log("Holdings API response:", res.data);
+
+        // Safely extract holdings array
+        let holdingsData = [];
+        if (Array.isArray(res.data)) {
+          holdingsData = res.data;
+        } else if (Array.isArray(res.data.allHoldings)) {
+          holdingsData = res.data.allHoldings;
+        } else if (Array.isArray(res.data.data)) {
+          holdingsData = res.data.data;
+        }
+
+        setAllHoldings(holdingsData);
+        setError("");
+      } catch (err) {
+        setError(err.response?.data?.error || "Please log in to see data");
+      }
+    };
+
+    const fetchOrders = async () => {
+      try {
+        const res = await axios.get("http://localhost:3002/allOrders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // console.log("Orders API response:", res.data);
+
+        // Safely extract orders array
+        let ordersData = [];
+        if (Array.isArray(res.data)) {
+          ordersData = res.data;
+        } else if (Array.isArray(res.data.allOrders)) {
+          ordersData = res.data.allOrders;
+        } else if (Array.isArray(res.data.data)) {
+          ordersData = res.data.data;
+        }
+
+        setAllOrders(ordersData);
+        setError("");
+      } catch (err) {
+        setError(err.response?.data?.error || "Please log in to see data");
+      }
+    };
+
+    fetchHoldings();
+    fetchOrders();
   }, []);
 
-  // fetch orders
-  useEffect(() => {
-    axios.get("http://localhost:3002/allOrders").then((res) => {
-      setAllOrders(res.data);
-    });
-  }, []);
+  if (error) {
+    return (
+      <p style={{ color: "red", fontSize: "21px", textAlign: "center" }}>
+        {error}
+      </p>
+    );
+  }
 
   // ---------- SUMMARY CALC ----------
   const totalInvestment =
-    allHoldings.reduce((acc, h) => acc + (Number(h.avg) || 0) * (Number(h.qty) || 0), 0) +
-    allOrders.reduce((acc, o) => acc + (Number(o.price) || 0) * (Number(o.qty) || 0), 0);
+    allHoldings.reduce(
+      (acc, h) => acc + (Number(h.avg) || 0) * (Number(h.qty) || 0),
+      0
+    ) +
+    allOrders.reduce(
+      (acc, o) => acc + (Number(o.price) || 0) * (Number(o.qty) || 0),
+      0
+    );
 
   const totalCurrentValue =
-    allHoldings.reduce((acc, h) => acc + (Number(h.price) || 0) * (Number(h.qty) || 0), 0) +
+    allHoldings.reduce(
+      (acc, h) => acc + (Number(h.price) || 0) * (Number(h.qty) || 0),
+      0
+    ) +
     allOrders.reduce((acc, o) => {
       const holding = allHoldings.find((h) => h.name === o.name);
       const ltp = holding ? Number(holding.price) || 0 : Number(o.price) || 0;
@@ -36,34 +97,28 @@ const Holdings = () => {
     }, 0);
 
   const totalPnL = totalCurrentValue - totalInvestment;
-  const totalChangePct = totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
+  const totalChangePct =
+    totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
 
   // ---------- GRAPH DATA ----------
-const combinedData = [];
+  const combinedData = [];
 
-// process holdings
-allHoldings.forEach((h) => {
-  combinedData.push({
-    name: h.name,
-    value: (Number(h.price) || 0) * (Number(h.qty) || 0),
+  allHoldings.forEach((h) => {
+    combinedData.push({
+      name: h.name,
+      value: (Number(h.price) || 0) * (Number(h.qty) || 0),
+    });
   });
-});
 
-// process orders
-allOrders.forEach((o) => {
-  const holding = allHoldings.find((h) => h.name === o.name);
-  const ltp = holding ? Number(holding.price) || 0 : Number(o.price) || 0;
+  allOrders.forEach((o) => {
+    const holding = allHoldings.find((h) => h.name === o.name);
+    const ltp = holding ? Number(holding.price) || 0 : Number(o.price) || 0;
+    const value = o.mode === "BUY" ? ltp * o.qty : -ltp * o.qty;
 
-  const value = o.mode === "BUY" ? ltp * o.qty : -ltp * o.qty;
-
-  const existing = combinedData.find((item) => item.name === o.name);
-  if (existing) {
-    existing.value += value; // add or subtract depending on BUY/SELL
-  } else {
-    combinedData.push({ name: o.name, value });
-  }
-});
-
+    const existing = combinedData.find((item) => item.name === o.name);
+    if (existing) existing.value += value;
+    else combinedData.push({ name: o.name, value });
+  });
 
   const labels = combinedData.map((item) => item.name);
   const data = {
@@ -101,13 +156,10 @@ allOrders.forEach((o) => {
                 const avg = Number(stock.avg) || 0;
                 const price = Number(stock.price) || 0;
                 const qty = Number(stock.qty) || 0;
-
                 const curValue = price * qty;
                 const pnl = curValue - avg * qty;
                 const netChange = avg > 0 ? ((price - avg) / avg) * 100 : 0;
-
-                const isProfit = pnl >= 0;
-                const profClass = isProfit ? "profit" : "loss";
+                const profClass = pnl >= 0 ? "profit" : "loss";
                 const dayClass = stock.isLoss ? "loss" : "profit";
 
                 return (
@@ -149,17 +201,12 @@ allOrders.forEach((o) => {
               {allOrders.map((order, index) => {
                 const avg = Number(order.price) || 0;
                 const qty = Number(order.qty) || 0;
-
                 const holding = allHoldings.find((h) => h.name === order.name);
                 const ltp = holding ? Number(holding.price) || 0 : avg;
-
                 const curValue = ltp * qty;
                 const pnl = curValue - avg * qty;
                 const netChange = avg > 0 ? ((ltp - avg) / avg) * 100 : 0;
-
-                const isProfit = pnl >= 0;
-                const profClass = isProfit ? "profit" : "loss";
-
+                const profClass = pnl >= 0 ? "profit" : "loss";
                 const dayChange = holding ? holding.day : "-";
 
                 return (
